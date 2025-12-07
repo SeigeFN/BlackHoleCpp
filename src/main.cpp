@@ -13,19 +13,27 @@
 #include"../BlackHoleCpp/VBO.h"
 #include"../BlackHoleCpp/EBO.h"
 
+
+
+
+
+
 const float pi = 3.1415926f;
+
+
 
 //Vertices Coordinates
 	//3 points that create an equilateral triangle
 		//now we are making zelda logo thingy, 3 triangles
 GLfloat vertices[] =
-{
-	-0.5f, -0.5f * float(sqrt(3)) / 3, 0.0f,	//lower left
-	0.5f, -0.5f * float(sqrt(3)) / 3, 0.0f,		//lower right
-	0.0f, 0.5f * float(sqrt(3)) * 2 / 3, 0.0f,	//middle top
-	-0.5f / 2, 0.5f * float(sqrt(3)) / 6, 0.0f,	//inner left
-	0.5f / 2, 0.5f * float(sqrt(3)) / 6, 0.0f,	//inner right
-	0.0f, -0.5f * float(sqrt(3)) / 3, 0.0f		//inner middle
+{//					Coordinates/XYZ/		/ Z	|		Colours/RGBA/		//
+	- 0.5f,	-0.5f * float(sqrt(3)) / 3,		0.0f,	0.5f,	0.0f, 0.0f,	//lower left
+	0.5f,	-0.5f * float(sqrt(3)) / 3,		0.0f,	0.0f,	1.0f, 0.0f,	//lower right
+	0.0f,	0.5f * float(sqrt(3)) * 2 / 3,	0.0f,	0.0f,	0.0f, 1.0f,	//middle top
+
+	-0.25f,	0.5f * float(sqrt(3)) / 6,		0.0f,	0.5f,	0.0f, 0.5f,	//inner left
+	0.25f,	0.5f * float(sqrt(3)) / 6,		0.0f,	0.0f,	0.5f, 0.5f,	//inner right
+	0.0f,	-0.5f * float(sqrt(3)) / 3,		0.0f,	0.5f,	0.5f, 0.0f	//inner middle
 };
 GLuint indices[] =
 {
@@ -140,20 +148,22 @@ int main() {
 	EBO EBO1(indices, sizeof(indices));
 
 	//Links VBO1 to VAO1
-	VAO1.LinkVBO(VBO1, 0);
+	VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, 6 * sizeof(float), (void*)0);
+	VAO1.LinkAttrib(VBO1, 1, 3, GL_FLOAT, 6 * sizeof(float), (void*)(3 * sizeof(float)));
 	//unbind all array/buffers to prevent accidentally modifying them
 	VAO1.Unbind();
 	VBO1.Unbind();
 	EBO1.Unbind();
 
 
-
+	GLuint uniID = glGetUniformLocation(shaderProgram.ID, "scale");
 
 	//main loop
 	while (!glfwWindowShouldClose(engine.window)) {
 		engine.run();
 
 		shaderProgram.Activate();
+		glUniform1f(uniID, 0.5f);
 		VAO1.Bind();
 		//draw the triangle using the GL_TRIANGLES primative
 			//draw triangles
