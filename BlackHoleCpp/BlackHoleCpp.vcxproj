@@ -132,9 +132,10 @@
   <ItemGroup>
     <ClCompile Include="..\src\glad.c" />
     <ClCompile Include="..\src\main.cpp" />
-    <ClCompile Include="..\src\stb_image.cpp" />
+    <ClCompile Include="..\src\stb.cpp" />
     <ClCompile Include="EBO.cpp" />
     <ClCompile Include="shaderClass.cpp" />
+    <ClCompile Include="Texture.cpp" />
     <ClCompile Include="VAO.cpp" />
     <ClCompile Include="VBO.cpp" />
   </ItemGroup>
@@ -145,8 +146,12 @@
   <ItemGroup>
     <ClInclude Include="EBO.h" />
     <ClInclude Include="shaderClass.h" />
+    <ClInclude Include="Texture.h" />
     <ClInclude Include="VAO.h" />
     <ClInclude Include="VBO.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\..\..\..\Pictures\TimOpenGl.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

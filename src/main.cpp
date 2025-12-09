@@ -1,13 +1,14 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-//#include <stb/stb_image.h>
+#include <stb/stb_image.h>
 #include <glm/glm/glm.hpp>
-//#include <glm/glm/gtc/matrix_transform.hpp>
-//#include <glm/glm/gtc/type_ptr.hpp>
+#include <glm/glm/gtc/matrix_transform.hpp>
+#include <glm/glm/gtc/type_ptr.hpp>
 #include <iostream>
 //#include <vector>
 #include <cmath>
 
+#include<../BlackHoleCpp/Texture.h>
 #include"../BlackHoleCpp/shaderClass.h"
 #include"../BlackHoleCpp/VAO.h"
 #include"../BlackHoleCpp/VBO.h"
@@ -25,9 +26,9 @@ const float pi = 3.1415926f;
 //Vertices Coordinates
 	//3 points that create an equilateral triangle
 		//now we are making zelda logo thingy, 3 triangles
-GLfloat vertices[] =
+GLfloat triangles_vertices[] =
 {//					Coordinates/XYZ/		/ Z	|		Colours/RGBA/		//
-	- 0.5f,	-0.5f * float(sqrt(3)) / 3,		0.0f,	0.5f,	0.0f, 0.0f,	//lower left
+	- 0.5f,	-0.5f * float(sqrt(3)) / 3,		0.0f,	1.0f,	0.0f, 0.0f,	//lower left
 	0.5f,	-0.5f * float(sqrt(3)) / 3,		0.0f,	0.0f,	1.0f, 0.0f,	//lower right
 	0.0f,	0.5f * float(sqrt(3)) * 2 / 3,	0.0f,	0.0f,	0.0f, 1.0f,	//middle top
 
@@ -35,18 +36,38 @@ GLfloat vertices[] =
 	0.25f,	0.5f * float(sqrt(3)) / 6,		0.0f,	0.0f,	0.5f, 0.5f,	//inner right
 	0.0f,	-0.5f * float(sqrt(3)) / 3,		0.0f,	0.5f,	0.5f, 0.0f	//inner middle
 };
-GLuint indices[] =
+
+GLuint triangles_indices[] =
 {
 	0, 3, 5,	//Lower left triangle
 	3, 2, 4,	//Upper triangle
 	5, 4, 1		//Lower right triangle
 };
 
+GLfloat vertices[] =
+{//	Coordinates/XYZ/		|		Colours/RGBA/	|		TexCoord	//
+	-0.5f,	0.0f,	0.5f,		1.0f,	0.0f, 0.0f,		0.0f, 0.0f,
+	-0.5f,	0.0f,	-0.5f,		0.0f,	1.0f, 0.0f,		5.0f, 0.0f,
+	0.5f,	0.0f,	-0.5f,		0.0f,	0.0f, 1.0f,		0.0f, 0.0f,
+	0.5f,	0.0f,	0.5f,		1.0f,	1.0f, 1.0f,		5.0f, 0.0f,
+	0.0f,	0.8f,	0.0f,		0.0f,	0.0f, 0.0f,		2.5f, 5.0f
+};
+
+GLuint indices[] =
+{
+	0, 1, 2,
+	0, 2, 3,
+	0, 1, 4,
+	1, 2, 4,
+	2, 3, 4,
+	3, 0, 4
+};
+
 struct Engine {
 	GLFWwindow* window;
 	//screen size
-	int WIDTH = 800;
-	int HEIGHT = 800;
+	const unsigned int WIDTH = 800;
+	const unsigned int HEIGHT = 800;
 	//physical area
 	/*
 	float widthAU = 1e11f;
@@ -148,8 +169,9 @@ int main() {
 	EBO EBO1(indices, sizeof(indices));
 
 	//Links VBO1 to VAO1
-	VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, 6 * sizeof(float), (void*)0);
-	VAO1.LinkAttrib(VBO1, 1, 3, GL_FLOAT, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, 8 * sizeof(float), (void*)0);
+	VAO1.LinkAttrib(VBO1, 1, 3, GL_FLOAT, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	VAO1.LinkAttrib(VBO1, 2, 2, GL_FLOAT, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 	//unbind all array/buffers to prevent accidentally modifying them
 	VAO1.Unbind();
 	VBO1.Unbind();
@@ -158,16 +180,89 @@ int main() {
 
 	GLuint uniID = glGetUniformLocation(shaderProgram.ID, "scale");
 
+	//Texture
+	/*int widthImg, heightImg, numColourChannels;
+	stbi_set_flip_vertically_on_load(true);
+	unsigned char* bytes = stbi_load("TimOpenGL.png", &widthImg, &heightImg, &numColourChannels, 0);
+
+	if (!bytes) {
+		std::cout << "STB failed: " << stbi_failure_reason() << std::endl;
+	}
+	else {
+		std::cout << "Loaded texture: " << widthImg << "x" << heightImg << ", channels " << numColourChannels << std::endl;
+	}
+
+	//std::cout << numColourChannels << std::endl;
+
+	GLuint texture;
+	glGenTextures(1, &texture);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, widthImg, heightImg, 0, GL_RGBA, GL_UNSIGNED_BYTE, bytes);
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	stbi_image_free(bytes);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	GLuint tex0Uni = glGetUniformLocation(shaderProgram.ID, "tex0");
+	shaderProgram.Activate();
+	glUniform1i(tex0Uni, 0);*/
+
+	Texture TimOpenGl("TimOpenGl.png", GL_TEXTURE_2D, GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE);
+	TimOpenGl.texUnit(shaderProgram, "tex0", 0);
+
+
+	float rotation = 0.0f;
+	double prevTime = 0;
+
+
 	//main loop
 	while (!glfwWindowShouldClose(engine.window)) {
 		engine.run();
 
 		shaderProgram.Activate();
+
+		double curTime = glfwGetTime();
+		double timeDelta = curTime - prevTime;
+		if (timeDelta >= (1.0 / 60.0)) {
+			//std::cout << timeDelta << std::endl;
+			rotation += 0.5f;
+			prevTime = curTime;
+		}
+
+		glm::mat4 model = glm::mat4(1.0f);
+		glm::mat4 view = glm::mat4(1.0f);
+		glm::mat4 proj = glm::mat4(1.0f);
+
+		model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f, 1.0f, 0.0f));
+		view = glm::translate(view, glm::vec3(0.0f, -0.5f, -2.0f));
+		proj = glm::perspective(glm::radians(45.0f), (float)(engine.WIDTH / engine.HEIGHT), 0.1f, 100.0f);
+
+		int modelLoc = glGetUniformLocation(shaderProgram.ID, "model");
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		int viewLoc = glGetUniformLocation(shaderProgram.ID, "view");
+		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+		int projLoc = glGetUniformLocation(shaderProgram.ID, "proj");
+		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(proj));
+
+
 		glUniform1f(uniID, 0.5f);
+
+		TimOpenGl.Bind();
 		VAO1.Bind();
 		//draw the triangle using the GL_TRIANGLES primative
 			//draw triangles
-		glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, 0);
+		//glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, 0);
+		
+		//draw square
+		glDrawElements(GL_TRIANGLES, sizeof(indices)/sizeof(int), GL_UNSIGNED_INT, 0);
 		glfwSwapBuffers(engine.window);
 
 		/*
@@ -211,6 +306,7 @@ int main() {
 	VAO1.Delete();
 	VBO1.Delete();
 	EBO1.Delete();
+	TimOpenGl.Delete();
 	shaderProgram.Delete();
 	engine.deleteStuff();
 	return 0;
